@@ -1,12 +1,12 @@
-Fitter Status : Successful - Fri Oct 23 02:56:29 2026
+Fitter Status : Successful - Fri Oct 23 13:31:40 2026
 Quartus Prime Version : 17.0.2 Build 602 07/19/2017 SJ Lite Edition
 Revision Name : Gunpey
 Top-level Entity Name : sys_top
 Family : Cyclone V
 Device : 5CSEBA6U23I7
 Timing Models : Final
-Logic utilization (in ALMs) : 20,278 / 41,910 ( 48 % )
-Total registers : 24392
+Logic utilization (in ALMs) : 20,313 / 41,910 ( 48 % )
+Total registers : 24560
 Total pins : 145 / 314 ( 46 % )
 Total virtual pins : 0
 Total block memory bits : 3,049,157 / 5,662,720 ( 54 % )

@@ -3,6 +3,8 @@
 // palette mirror from the video RAM's rows 0-255), its first vblank takes the list, and the frame after it is compared with MAME's
 // snapshot of the frame (snap_<f>.png); the picture is written as out_<f>.ppm.
 //   Vtb_frame_top <state dir> <frame> [<frame> ...]
+// FLIPX=1 / FLIPY=1 in the environment set 7FF0's flip bits (5 / 6) as the game does with the Flip Screen DIP on (MAME has no flip:
+// the picture is then compared with MAME's snapshot mirrored the same way).
 #include "Vtb_frame_top.h"
 #include "Vtb_frame_top___024root.h"
 #include "verilated.h"
@@ -41,6 +43,7 @@ int main(int argc, char **argv)
     if (argc < 3) { fprintf(stderr, "usage: Vtb_frame_top <dir> <frame>...\n"); return 2; }
     std::string dir = argv[1];
     int bad = 0;
+    const bool fx = getenv("FLIPX") && atoi(getenv("FLIPX")), fy = getenv("FLIPY") && atoi(getenv("FLIPY"));
     Vtb_frame_top *t = new Vtb_frame_top;
     auto &mem = t->rootp->tb_frame_top__DOT__u_model__DOT__mem_b;
     uint64_t cyc = 0;
@@ -59,6 +62,7 @@ int main(int argc, char **argv)
         t->reset = 1; t->pal_we = 0; t->wr_we = 0;
         t->vram_bank = s[0] | (s[1] << 8);
         t->vreg_addr = s[2] | (s[3] << 8);
+        t->vctrl = 0x84 | (fx ? 0x20 : 0) | (fy ? 0x40 : 0);
         for (int i = 0; i < 4; i++) tick();
         // the work RAM and the palette mirror, through their write ports while the chip is held
         for (int i = 0; i < 0x8000; i++) {
@@ -101,10 +105,18 @@ int main(int argc, char **argv)
         std::vector<uint32_t> snap; int w, h;
         printf("frame %s: %d sprites, longest line %d clocks, %d overruns: ", fr.c_str(), t->sprites, t->line_clks, t->overruns);
         if (!load_png(dir + "/snap_" + fr + ".png", snap, w, h) || w != 320 || h != 240) { printf("no snapshot\n"); continue; }
+        if (fx || fy) {
+            std::vector<uint32_t> m(snap.size());
+            for (int k = 0; k < 320 * 240; k++) {
+                int sx = k % 320, sy = k / 320;
+                m[(fy ? 239 - sy : sy) * 320 + (fx ? 319 - sx : sx)] = snap[k];
+            }
+            snap.swap(m);
+        }
         int diff = 0, first = -1;
         for (int k = 0; k < 320 * 240; k++) if (pic[k] != snap[k]) { if (first < 0) first = k; diff++; }
         if (diff) { printf("%d dots differ (first at %d,%d: core %06x mame %06x)\n", diff, first % 320, first / 320, pic[first], snap[first]); bad++; }
-        else printf("identical to MAME\n");
+        else printf(fx || fy ? "identical to MAME's, mirrored\n" : "identical to MAME\n");
     }
     delete t;
     return bad != 0;

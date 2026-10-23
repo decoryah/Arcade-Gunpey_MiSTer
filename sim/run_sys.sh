@@ -1,6 +1,7 @@
 #!/bin/sh
 # The system bench (tb_gunpey.cpp): the whole board from reset with MAME's ROMs.
-#   sim/run_sys.sh <rom dir> <out dir> <last frame> [frames to write ...]      (SCHED=play, IOLOG=<file>, EVERY=<n>)
+#   sim/run_sys.sh <rom dir> <out dir> <last frame> [frames to write ...]      (SCHED=play, IOLOG=<file>, EVERY=<n>,
+#                                                                                    DSW1=<n> / DSW2=<n>)
 set -e
 cd "$(dirname "$0")"
 export PATH="$HOME/tools/oss-cad-suite/bin:$PATH"

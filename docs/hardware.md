@@ -32,6 +32,7 @@ clocks come from a different crystal and are fractions of it (the YMZ280B's samp
     7FD0-7FDF  the blitter; a 2 written to 7FD0 starts it
     7FEC/7FED  vreg_addr: the scene list's address in the work RAM (bit 15: the display on)
     7FEE/7FEF  vram_bank: the base the scenes' sprite lists are relative to (bit 15: on)
+    7FF0       not in MAME's map: written every frame, 0x84, or 0xE4 with the Flip Screen DIP on (bits 6-5: the flip)
 
 The interrupt is one line with vector 0x80. Causes: 0x50 at the start of line 240 (vblank), 0x04 at the end of a blit. MAME raises the
 line whenever a cause is or-ed in or the mask / cause registers are written and cause & mask is not zero, and drops it otherwise or
@@ -89,6 +90,12 @@ the video RAM's rows 0-255 that the blitter keeps.
 
 The busiest frames have about 150 sprites and 1540 drawn dots on a line; the core draws a line in at most about 1700 of the 5304
 clocks it has.
+
+The flip: the game reads the Flip Screen DIP switch (DSW1 bit 7) and sets bits 6 and 5 of 7FF0 for it, and does nothing else
+differently (the I/O writes of 900 frames of MAME with the switch off and on, `tools/lua/flip.lua`: the same but for 7FF0); the AG-1's
+data sheet lists a "built-in flip". MAME ignores 7FF0, so its picture is the same either way. The core mirrors the picture by each bit:
+bit 6 top to bottom (screen line y is drawn from the list's line 239 - y), bit 5 left to right (the line buffer is shown from its
+end), taken at the start of line 240 for the frame drawn next. Which bit is which axis is not known; the game only sets both.
 
 Real hardware draws into a double-buffered frame buffer in the same video RAM (MAME's TODO); where the frame buffers are and whether
 the board shows the game at 30 or 60 frames a second (the 2018 report's open question) are not known. The core shows what MAME

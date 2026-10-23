@@ -3,7 +3,8 @@
 // button 1), frame k counted at the k-th vblank as MAME counts its frame_done. The picture shown after vblank k (MAME's snap_k) is
 // written as out_<k>.ppm for the frames asked for; a line a frame (or every 50) reports the video chip's load.
 //   Vtb_gunpey_top <rom dir> <out dir> <last frame> [<frame> ...]       (IOLOG=<file>: the CPU's I/O accesses, MAME's iotrace format;
-//                                                                         WAV=<file>: the sound, 48 kHz stereo)
+//                                                                         WAV=<file>: the sound, 48 kHz stereo;
+//                                                                         DSW1=<n> / DSW2=<n>: the DIP switches, MAME's ports)
 #include "Vtb_gunpey_top.h"
 #include "Vtb_gunpey_top___024root.h"
 #include "verilated.h"
@@ -76,7 +77,9 @@ int main(int argc, char **argv)
     }
 
     uint64_t cyc = 0, cpu_clk = 0;
-    t->dsw1 = 0; t->dsw2 = 0; t->in_p1 = 0; t->in_p2 = 0; t->in_sys = 0;
+    t->dsw1 = getenv("DSW1") ? strtol(getenv("DSW1"), nullptr, 0) : 0;
+    t->dsw2 = getenv("DSW2") ? strtol(getenv("DSW2"), nullptr, 0) : 0;
+    t->in_p1 = 0; t->in_p2 = 0; t->in_sys = 0;
     t->reset = 1;
     auto tick = [&]() { t->clk = 0; t->eval(); t->clk = 1; t->eval(); cyc++; };
     for (int i = 0; i < 20; i++) tick();

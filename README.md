@@ -34,7 +34,7 @@ third button. Keyboard: 1 / 2 start, 5 / 6 coin, 9 service, F2 the test switch (
 | Scandoubler Fx | None, HQ2x, CRT 25 / 50 / 75 % |
 | CRT Adjust (page) | Off, On; H-Size 0 to +2 and -16 to -1, H-Position -48 to +16, V-Shift -16 to +15. rmonic79's CRT Adjust (`modules/crt-adjust`) for a 15 kHz analog output: the picture's size and place on the tube are changed through a line buffer while the sync pulses keep their timing, so the monitor stays locked. A size step is 1/48 of a dot (6.7 dots across the picture); +2 is the most that fits before the next hsync pulse, and H-Position +16 fits at H-Size 0 (larger settings together cut the picture's right edge at the hsync pulse). It does nothing while the scandoubler is on (31 kHz) |
 | Volume | Normal (twice MAME's level), -6 dB, -12 dB, +6 dB |
-| Swap stereo | No, Yes |
+| Swap stereo | No, Yes: left and right exchanged. The game is stereo: it pans some of the YMZ280B's sounds to one side (the OKI's are in the middle) |
 | DIP switches | MAME's: difficulty (single and vs. mode), matches in vs. mode, demo sounds, flip screen, coin A / B, free play, continue |
 
 ## What is verified
@@ -45,6 +45,8 @@ third button. Keyboard: 1 / 2 start, 5 / 6 coin, 9 service, F2 the test switch (
   byte-identical to MAME's. The palette mirror's 99584 writes match the video RAM they copy.
 * **The display**, against MAME's snapshots: 23 dumped frames (attract mode, menus, play) drawn by `rtl/gunpey_video.sv` from MAME's
   state (`sim/run_frames.sh`) are pixel-identical to MAME's pictures. The longest line takes 1687 of the 5304 clocks a line has.
+  With the flip bits set (`FLIPX=1` / `FLIPY=1`, each alone and both), the play session's frames are MAME's mirrored the same way,
+  dot for dot, in the same time.
 * **The C++ reference** (`tools/gunpey_ref`, MAME's code ported line for line): the same frames and blits, identical to MAME; it also
   checked that every compressed sprite's copy codes read only what the core keeps (the strip's row before and the last column of
   the strip before).
@@ -53,7 +55,8 @@ third button. Keyboard: 1 / 2 start, 5 / 6 coin, 9 service, F2 the test switch (
   in speed (below).
 * **The whole board** (`sim/run_sys.sh`): from reset with the ROM set, the game boots, runs its attract mode, takes a coin and starts
   a game (1500 frames; 1100 with the released logic); at frame 1000, with MAME's scripted inputs, its picture is MAME's frame 1000
-  but for a moving banner a few dots further on. No line ever ran out of time (the longest took 1063 of its 5304 clocks).
+  but for a moving banner a few dots further on. No line ever ran out of time (the longest took 1063 of its 5304 clocks). With the
+  Flip Screen DIP on (`DSW1=0x80`), frame 300 is the unflipped run's frame 300 turned 180 degrees, dot for dot.
 * **The sound**, against MAME's `-wavwrite` recording of the same scripted session: the system bench's 48 kHz capture starts where
   MAME's does, at twice MAME's level as designed, and its waveform matches MAME's: the normalised cross-correlation of half-second
   windows is 0.86 to 0.997 (at offsets of 0 and 65 ms: the core's slower V30 moves some sound events by a few frames).
@@ -65,7 +68,7 @@ third button. Keyboard: 1 / 2 start, 5 / 6 coin, 9 service, F2 the test switch (
   SDRAM byte for byte; the raster is 442 x 264 dots of 12 clocks (61.32 Hz) with 240 rows of 320 dots, scandoubled 480 rows; every
   Scale setting asks the HDMI scaler for the size the framework's rule gives; CRT Adjust's extremes (H-Size +2 and -16, H-Position +16
   and -48, V-Shift -16 and +15) keep every row whole.
-* **The build** (Quartus 17.0.2, `releases/gunpey_20261023.rbf`): every clock meets timing, the machine's 85.86 MHz with 1.26 ns to
+* **The build** (Quartus 17.0.2, `releases/gunpey_20261023.rbf`): every clock meets timing, the machine's 85.86 MHz with 1.09 ns to
   spare; 48 % of the logic, 54 % of the block RAM, 46 % of the DSP blocks. The fitter and timing summaries are next to the RBF.
 
 ## Where the core is not MAME
@@ -79,6 +82,9 @@ third button. Keyboard: 1 / 2 start, 5 / 6 coin, 9 service, F2 the test switch (
   meanwhile, so the list is MAME's) but reads the sprites' pixels from the video RAM while it draws the next frame a line at a time.
   The game never blits into what the shown frame reads after its start (checked over 70000 frames of MAME), apart from three blits in
   boot frames with nothing on the screen.
+* **The flip.** With the Flip Screen DIP on, the game writes 0xE4 instead of 0x84 to the AG-1's register 7FF0 every frame and
+  changes nothing else (`tools/lua/flip.lua`); the AG-1 turns the picture round itself. MAME has no 7FF0 and shows the picture
+  unflipped; the core turns it 180 degrees.
 
 ## Known differences / open points
 
@@ -87,7 +93,8 @@ third button. Keyboard: 1 / 2 start, 5 / 6 coin, 9 service, F2 the test switch (
 * MAME's own open points stay open: where the board's two frame buffers are in the video RAM, and whether the board shows the game at
   60 or 30 frames a second (the 2018 progress report's question); the core shows what MAME shows. MAME's raster (442 x 264 dots,
   61.32 Hz) is used; the PCB's notes give 60 Hz / 15.79 kHz.
-* The flip screen DIP switch is passed to the game as in MAME, which does not flip the picture either.
+* The flip: 7FF0's bits 5 and 6 mirror the picture left to right and top to bottom in the core, but which bit is which axis is a
+  guess, as the game only ever sets both (for the DIP switch, both together are a 180 degree turn either way).
 * The sound is MAME's chips (the YMZ280B from MAME's code, the OKI by jt6295) at twice MAME's mix level; compared with MAME's
   recording by correlation, not sample by sample.
 
@@ -101,7 +108,7 @@ third button. Keyboard: 1 / 2 start, 5 / 6 coin, 9 service, F2 the test switch (
 | `sys/` | the MiSTer framework |
 | `mra/` | the MRA |
 | `sim/` | Verilator benches: the whole board (`run_sys.sh`), the frame bench (`run_frames.sh`), the blitter bench (`run_blit.sh`), the V30 alone (`run_v30.sh`), the MiSTer top level with the framework's video path (`emu/run_emu.sh`: the streamed and the fast load, the raster, Scale, the scandoubler, CRT Adjust) |
-| `tools/` | the AG-1 reference in C++ (`gunpey_ref/`), the MAME Lua probe (`lua/dump_state.lua`) and its runner (`mame_dump.sh`), the decoder table's generator (`gen_huff.py`), MRA image builder (`mra_build.py`), picture tools (`ppm2png.py`, `montage.py`, `cmp_frame.py`, `pngio.py`) |
+| `tools/` | the AG-1 reference in C++ (`gunpey_ref/`), the MAME Lua probes (`lua/dump_state.lua`, `lua/buttons.lua`, `lua/flip.lua`) and the dump's runner (`mame_dump.sh`), the decoder table's generator (`gen_huff.py`), MRA image builder (`mra_build.py`), picture tools (`ppm2png.py`, `montage.py`, `cmp_frame.py`, `pngio.py`) |
 | `docs/` | `hardware.md`: the board as MAME describes it, what the game does with it, and the core's design |
 | `releases/` | the RBF of each release with its fitter and timing summaries |
 
@@ -114,9 +121,12 @@ Quartus Prime Lite 17.0.2:
 The benches need Verilator 5 (in WSL), g++ with libpng, Python 3 and your romset (unzipped in `work/roms/gunpey/`):
 
     tools/mame_dump.sh ../work/dump "1000,2000" play                 # MAME's states, snapshots and blit log (Git Bash)
-    sim/run_frames.sh ../work/dump                                    # draw them, compare with MAME
-    sim/run_blit.sh ../work/roms/gunpey/gp_rom3.025 ../work/dump/state_1000.bin ../work/dump/state_2000.bin ../work/dump/blits.log 1000 2000
-    SCHED=play sim/run_sys.sh ../work/roms/gunpey ../work/sys 1500 500 1000   # the whole board, pictures of frames 500 and 1000
+    W=$PWD/../work                                                    # the sim/ scripts run in sim/: give them full paths
+    sim/run_frames.sh $W/dump                                         # draw them, compare with MAME
+    FLIPX=1 FLIPY=1 sim/run_frames.sh $W/dump                         # flipped, compared with MAME's turned round
+    sim/run_blit.sh $W/roms/gunpey/gp_rom3.025 $W/dump/state_1000.bin $W/dump/state_2000.bin $W/dump/blits.log 1000 2000
+    SCHED=play sim/run_sys.sh $W/roms/gunpey $W/sys 1500 500 1000    # the whole board, pictures of frames 500 and 1000
+    DSW1=0x80 sim/run_sys.sh $W/roms/gunpey $W/sysflip 300 300        # the Flip Screen DIP on
     make -C tools/gunpey_ref && tools/gunpey_ref/gunpey_ref render ../work/dump/state_1000.bin out.ppm ../work/dump/snap_1000.png
 
 MAME's captures, the images and the benches' pictures go to a scratch folder `work/` next to the repository (never committed).

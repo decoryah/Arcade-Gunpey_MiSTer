@@ -13,6 +13,11 @@
 // list's order, their pixels from the video RAM (an SDRAM row fetch a sprite) and their colours from the palette mirror (block RAM,
 // kept by the blitter). The game never writes the video RAM the shown frame reads after the frame's start (checked over 70000 frames
 // of MAME), so drawing during the frame gives MAME's picture.
+//
+// The flip (the AG-1's "built-in flip", which MAME does not have): the game writes 7FF0 every frame, 0x84, or 0xE4 with the Flip Screen
+// DIP on, and changes nothing else. Bit 5 here mirrors the picture left to right (the line buffer is shown from its end), bit 6 top to
+// bottom (screen line y is drawn from the list's line 239 - y); which bit is which axis is a guess, as the game only ever sets both.
+// They are taken at the start of line 240, between the last line shown and the first one drawn of the next frame.
 //------------------------------------------------------------------------------
 `default_nettype none
 
@@ -26,6 +31,7 @@ module gunpey_video #(
     // the registers (as the CPU writes them) and the work RAM's second port (its word comes the clock after the address)
     input  logic [15:0] vreg_addr,
     input  logic [15:0] vram_bank,
+    input  logic  [7:0] vctrl,              // 7FF0: bit 5 the horizontal flip, bit 6 the vertical
     output logic [14:0] wram_addr,
     input  logic [15:0] wram_q,
     output logic        freeze,             // hold the CPU (the list copy)
@@ -84,6 +90,12 @@ module gunpey_video #(
     end
     assign vbl = !reset && started && line_start && (vc == 9'd240);
     assign dbg_frame = vbl;
+
+    logic [1:0] flip;                         // {vertical, horizontal}, the frame's
+    always_ff @(posedge clk) begin
+        if (reset) flip <= '0;
+        else if (vbl) flip <= vctrl[6:5];
+    end
 
     // ================================================================== the list copy (line 240)
     // Each drawable sprite's entry in the table:
@@ -281,7 +293,7 @@ module gunpey_video #(
             if (!r_idle) line_clks <= line_clks + 13'd1;
             if (d_free) slot_busy[d_free_slot] <= 1'b0;
             if (draw_next) begin
-                rl_pend <= 1'b1; rl_next <= draw_line;
+                rl_pend <= 1'b1; rl_next <= flip[1] ? 9'(VVIS - 1) - draw_line : draw_line;
                 if (!r_idle) begin ovr <= 1'b1; dbg_overruns <= dbg_overruns + 16'd1; end
             end
 
@@ -476,11 +488,12 @@ module gunpey_video #(
     wire [14:0] lb_show_q = sbuf ? q1 : q0;
 
     // ================================================================== the picture out
-    // dot hc is read at div 1 (its address set at div 0), taken at div 2 and cleared then, and shown with the next ce_pix
+    // dot hc is read at div 1 (its address set at div 0), taken at div 2 and cleared then, and shown with the next ce_pix; flipped, the
+    // buffer is read (and cleared) from dot 319 down
     logic [14:0] rgb_n;
     always_ff @(posedge clk) begin
         show_clr <= 1'b0;
-        if (div == 4'd0) show_x <= hc;
+        if (div == 4'd0) show_x <= flip[0] ? 9'(HVIS - 1) - hc : hc;
         if (div == 4'd1) show_clr <= (hc < 9'(HVIS));
         if (div == 4'd2) rgb_n <= (hc < 9'(HVIS) && vc < 9'(VVIS)) ? lb_show_q : 15'd0;
         ce_pix <= (div == 4'd11);

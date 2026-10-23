@@ -79,6 +79,7 @@ module gunpey_core (
     // ------------------------------------------------------------------ the CPU side
     logic [14:0]  v_wa;
     logic [15:0]  v_wq, vreg_addr, vram_bank;
+    logic  [7:0]  vctrl;
     logic         freeze, vbl, blt_start, blt_irq, cpu_ce;
     logic [127:0] blt_regs;
     logic         ymz_wr, ymz_a0, oki_wr;
@@ -89,7 +90,7 @@ module gunpey_core (
         .clk(clk), .reset(reset), .rom_ready(cache_ready),
         .rom_req(rom_req), .rom_addr(rom_addr), .rom_ack(rom_ack), .rom_q(rom_q),
         .v_addr(v_wa), .v_q(v_wq),
-        .freeze(freeze), .vbl(vbl), .vreg_addr(vreg_addr), .vram_bank(vram_bank),
+        .freeze(freeze), .vbl(vbl), .vreg_addr(vreg_addr), .vram_bank(vram_bank), .vctrl(vctrl),
         .blt_start(blt_start), .blt_regs(blt_regs), .blt_irq(blt_irq), .cpu_ce(cpu_ce),
         .ymz_wr(ymz_wr), .ymz_a0(ymz_a0), .ymz_din(ymz_din),
         .oki_wr(oki_wr), .oki_din(oki_din), .oki_dout(oki_dout), .oki_bank(oki_bank),
@@ -115,7 +116,7 @@ module gunpey_core (
 
     gunpey_video #(.VRAM_BASE(VRAM_BASE)) u_video (
         .clk(clk), .reset(reset),
-        .vreg_addr(vreg_addr), .vram_bank(vram_bank), .wram_addr(v_wa), .wram_q(v_wq), .freeze(freeze), .vbl(vbl),
+        .vreg_addr(vreg_addr), .vram_bank(vram_bank), .vctrl(vctrl), .wram_addr(v_wa), .wram_q(v_wq), .freeze(freeze), .vbl(vbl),
         .pal_we(pal_we), .pal_addr(pal_addr), .pal_data(pal_data),
         .m_req(m_req[0]), .m_addr(m_addr[0]), .m_len(m_len[0]), .m_ack(m_ack[0]), .m_valid(m_valid[0]), .m_data(m_rdata),
         .ce_pix(ce_pix), .hblank(hblank), .vblank(vblank), .vblank_next(vblank_next), .hs(hs), .vs(vs), .r(r), .g(g), .b(b),

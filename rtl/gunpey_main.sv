@@ -8,6 +8,8 @@
 //           7F80/7F81    YMZ280B register / data                          7F88     OKI M6295
 //           7FC8 / 7FC9  interrupt mask / cause (a write to 7FC9 clears the bits it has set)
 //           7FD0-7FDF    the blitter (a 2 written to 7FD0 starts it)      7FEC/7FED vreg_addr, 7FEE/7FEF vram_bank
+//           7FF0         the display control: bits 6-5 the flip (not in MAME's map: the game writes 0x84 a frame, 0xE4 with the Flip
+//                        Screen DIP on)
 //
 // The interrupt: one line, always vector 0x80. MAME's irq_check: a cause (0x50 at the start of line 240, 0x04 when a blit ends) is or-ed
 // in, and the line is raised while cause & mask is not zero, else dropped; the CPU's acknowledge drops it too (HOLD_LINE), until the next
@@ -45,6 +47,7 @@ module gunpey_main #(
     input  logic         vbl,
     output logic  [15:0] vreg_addr,
     output logic  [15:0] vram_bank,
+    output logic   [7:0] vctrl,              // 7FF0
 
     // the blitter
     output logic         blt_start,
@@ -174,7 +177,7 @@ module gunpey_main #(
         if (reset) begin
             rd_have <= 1'b0; rd_go <= 1'b0; wr_done <= 1'b0; ymz_hi_pend <= 1'b0; ack_d <= 1'b0;
             irq_mask <= '0; irq_cause <= '0; irq_line <= 1'b0;
-            vreg_addr <= '0; vram_bank <= '0; oki_bank <= '0; coin_counter <= 1'b0;
+            vreg_addr <= '0; vram_bank <= '0; vctrl <= '0; oki_bank <= '0; coin_counter <= 1'b0;
             for (int i = 0; i < 16; i++) blt[i] <= '0;
         end else begin
             // ---------------------------------------------------------- reads
@@ -238,6 +241,7 @@ module gunpey_main #(
                         16'h7fd2, 16'h7fd4, 16'h7fd6, 16'h7fd8, 16'h7fda, 16'h7fdc, 16'h7fde: blt[a[3:0]] <= d0;
                         16'h7fec: vreg_addr[7:0] <= d0;
                         16'h7fee: vram_bank[7:0] <= d0;
+                        16'h7ff0: vctrl <= d0;
                         default: ;
                     endcase
                     if (be[1]) case ({a[15:1], 1'b1})

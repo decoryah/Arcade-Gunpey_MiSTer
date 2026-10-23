@@ -6,6 +6,7 @@ module tb_frame_top (
     input  logic        reset,
     input  logic [15:0] vreg_addr,
     input  logic [15:0] vram_bank,
+    input  logic  [7:0] vctrl,
     input  logic        pal_we,
     input  logic [15:0] pal_addr,
     input  logic [15:0] pal_data,
@@ -53,7 +54,7 @@ module tb_frame_top (
 
     gunpey_video u_video (
         .clk(clk), .reset(reset || !ready),
-        .vreg_addr(vreg_addr), .vram_bank(vram_bank), .wram_addr(v_wa), .wram_q(v_wq), .freeze(freeze), .vbl(vbl),
+        .vreg_addr(vreg_addr), .vram_bank(vram_bank), .vctrl(vctrl), .wram_addr(v_wa), .wram_q(v_wq), .freeze(freeze), .vbl(vbl),
         .pal_we(pal_we), .pal_addr(pal_addr), .pal_data(pal_data),
         .m_req(c_req[0]), .m_addr(c_addr[0]), .m_len(c_len[0]), .m_ack(c_ack[0]), .m_valid(c_valid[0]), .m_data(rdata),
         .ce_pix(ce_pix), .hblank(hblank), .vblank(vblank), .vblank_next(), .hs(), .vs(), .r(r), .g(g), .b(b),

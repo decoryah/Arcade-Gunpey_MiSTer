@@ -1,0 +1,47 @@
+# ROMs and ROM images: never commit
+*.zip
+*.rom
+*.nv
+*.nvm
+
+# Quartus
+output_files/
+db/
+incremental_db/
+*.rpt
+*.summary
+*.done
+*.pin
+*.jdi
+*.sof
+*.srf
+build_id.v
+compile.log
+qdb/
+PLLJ_PLLSPE_INFO.txt
+jtag.cdf
+c5_pin_model_dump.txt
+
+# the tested release and its timing / fitter summaries
+!releases/*.summary
+
+# simulation
+sim/obj_*/
+sim/emu/obj_*/
+sim/*.log
+sim/emu/*.log
+artifacts/
+*.ppm
+
+# Python
+__pycache__/
+*.pyc
+
+# the release zip (attach it to the GitHub release; tools/package.py); the release notes are kept
+dist/*
+!dist/RELEASE_NOTES_*.md
+
+# the reference model's binary, the benches' states and sound
+tools/gunpey_ref/gunpey_ref
+*.bin
+*.wav

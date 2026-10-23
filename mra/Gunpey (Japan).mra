@@ -1,0 +1,54 @@
+<misterromdescription>
+    <name>Gunpey (Japan)</name>
+    <setname>gunpey</setname>
+    <mameversion>0289</mameversion>
+    <year>2000</year>
+    <manufacturer>Bandai / Banpresto</manufacturer>
+    <players>2</players>
+    <joystick>4</joystick>
+    <rotation>horizontal</rotation>
+    <rbf>gunpey</rbf>
+    <platform>Gunpey</platform>
+
+    <!--
+      The image of the Gunpey core (rtl/gunpey_loader.sv):
+        0x000000  0x100000  maincpu   ROM_LOAD16_BYTE: gp_rom1 the even bytes, gp_rom2 the odd ones
+        0x100000  0x400000  blit_rom  gp_rom3
+        0x500000  0x400000  ymz       gp_rom4
+        0x900000  0x200000  oki       gp_rom5's first half (its second half is 0xFF in the dump and never read)
+        0xB00000  0x400000  0xFF      the video RAM's first contents, as MAME's
+      The DIP switches are MAME 0.289's (gunpey.cpp); the test mode is F2 on a keyboard.
+    -->
+
+    <switches default="00,00">
+        <dip bits="0,1"   name="Difficulty"            ids="Normal,Easy,Hard,Hardest"/>
+        <dip bits="2,3"   name="Difficulty (vs. mode)" ids="Normal,Easy,Hard,Hardest"/>
+        <dip bits="4,5"   name="Matches (vs. mode)"    ids="1,2,3,5"/>
+        <dip bits="6"     name="Demo Sounds"           ids="On,Off"/>
+        <dip bits="7"     name="Flip Screen"           ids="Off,On"/>
+        <dip bits="8,10"  name="Coin A"                ids="1C 1C,1C 2C,1C 3C,2C 1C,2C 3C,3C 1C,3C 2C,4C 1C"/>
+        <dip bits="11,13" name="Coin B"                ids="1C 1C,1C 2C,1C 3C,2C 1C,2C 3C,3C 1C,3C 2C,4C 1C"/>
+        <dip bits="14"    name="Free Play"             ids="Off,On"/>
+        <dip bits="15"    name="Allow Continue"        ids="Off,On"/>
+    </switches>
+
+    <!-- what the buttons do, measured in MAME: button 1 swaps the cursor's two panels, button 2 raises the field a row; the board's
+         button 3 does nothing in the game -->
+    <buttons names="Swap,Raise,Start,Coin" default="A,B,Start,Select"/>
+
+    <rom index="0" zip="gunpey.zip" md5="06094488fbf4eccf49f052f474608857" address="0x32000000">
+        <!-- maincpu -->
+        <interleave output="16">
+            <part name="gp_rom1.021" crc="07a589a7" map="01"/>
+            <part name="gp_rom2.022" crc="f66bc4cf" map="10"/>
+        </interleave>
+        <!-- blit_rom -->
+        <part name="gp_rom3.025" crc="f2d1f9f0"/>
+        <!-- ymz -->
+        <part name="gp_rom4.525" crc="78dd1521"/>
+        <!-- oki: the first 2 MB -->
+        <part name="gp_rom5.622" crc="f79903e0" length="0x200000"/>
+        <!-- the video RAM -->
+        <part repeat="0x400000">FF</part>
+    </rom>
+</misterromdescription>

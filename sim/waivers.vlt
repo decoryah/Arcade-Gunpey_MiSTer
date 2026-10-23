@@ -1,0 +1,5 @@
+`verilator_config
+// Vendored cores are waived by path (modules/VENDOR.md); nothing else under rtl/ is waived wholesale.
+lint_off -file "*rtl/v30/*"
+lint_off -file "*modules/jt6295/*"
+lint_off -file "*modules/crt-adjust/*"

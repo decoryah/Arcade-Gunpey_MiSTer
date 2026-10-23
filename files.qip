@@ -1,0 +1,42 @@
+set_global_assignment -name SYSTEMVERILOG_FILE Gunpey.sv
+set_global_assignment -name SDC_FILE Gunpey.sdc
+set_global_assignment -name QIP_FILE rtl/pll.qip
+
+# the machine
+set_global_assignment -name SEARCH_PATH rtl
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_core.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_main.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_v30.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_cache.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_blitter.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_video.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_sound.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_ymz280b.sv
+
+# the MiSTer platform layer
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_sdram.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_loader.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_fastload.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/gunpey_standby.sv
+
+# the V30: the Irem M72 core's ucore (MiSTer-devel/Arcade-IremM72_MiSTer rtl/v30, GPL-2.0-or-later; rtl/v30/README.md). Its microcode
+# tables are read with $readmemh from rtl/v30/ (relative to the project directory, v30u_ucrom.sv's HEXDIR)
+set_global_assignment -name SEARCH_PATH rtl/v30
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/v30/v30u_ss_pkg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/v30/v30_core.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/v30/v30u_biu.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/v30/v30u_ucrom.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/v30/v30u_eu.sv
+
+# jt6295 (GPL-3.0, Jose Tejada; the owner's patched copy, modules/VENDOR.md)
+set_global_assignment -name VERILOG_FILE modules/jt6295/hdl/jt6295.v
+set_global_assignment -name VERILOG_FILE modules/jt6295/hdl/jt6295_acc.v
+set_global_assignment -name VERILOG_FILE modules/jt6295/hdl/jt6295_adpcm.v
+set_global_assignment -name VERILOG_FILE modules/jt6295/hdl/jt6295_ctrl.v
+set_global_assignment -name VERILOG_FILE modules/jt6295/hdl/jt6295_rom.v
+set_global_assignment -name VERILOG_FILE modules/jt6295/hdl/jt6295_serial.v
+set_global_assignment -name VERILOG_FILE modules/jt6295/hdl/jt6295_sh_rst.v
+set_global_assignment -name VERILOG_FILE modules/jt6295/hdl/jt6295_timing.v
+
+# rmonic79's CRT Adjust (GPL-3.0-or-later, modules/VENDOR.md)
+set_global_assignment -name SYSTEMVERILOG_FILE modules/crt-adjust/crt_adjust.sv

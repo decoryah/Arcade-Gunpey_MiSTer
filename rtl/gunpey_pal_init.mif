@@ -1,0 +1,8 @@
+-- the palette mirror's power-up contents (gunpey_video.sv): every entry 0xFFFF, as MAME's video RAM starts
+WIDTH=16;
+DEPTH=65536;
+ADDRESS_RADIX=HEX;
+DATA_RADIX=HEX;
+CONTENT BEGIN
+    [0..FFFF] : FFFF;
+END;

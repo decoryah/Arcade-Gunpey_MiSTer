@@ -7,8 +7,9 @@ driver (`src/mame/misc/gunpey.cpp`), with MAME as the reference for everything; 
 
 No ROMs or other copyrighted data are in this repository; you supply your own MAME `gunpey.zip`.
 
-**Status.** New core: built, simulated with the real game, **not yet tested on a MiSTer**. See "What is verified" for exactly
-what has been checked and how, and "Known differences / open points" for what has not.
+**Status.** First release (20261023): **tested on a real MiSTer by the repository owner, and it works**; simulated with the real
+game and compared with MAME 0.289. See "What is verified" for exactly what has been checked and how, and "Known differences / open
+points" for what has not.
 
 ## Install
 
@@ -70,6 +71,7 @@ third button. Keyboard: 1 / 2 start, 5 / 6 coin, 9 service, F2 the test switch (
   and -48, V-Shift -16 and +15) keep every row whole.
 * **The build** (Quartus 17.0.2, `releases/gunpey_20261023.rbf`): every clock meets timing, the machine's 85.86 MHz with 1.09 ns to
   spare; 48 % of the logic, 54 % of the block RAM, 46 % of the DSP blocks. The fitter and timing summaries are next to the RBF.
+* **On a real MiSTer**: `releases/gunpey_20261023.rbf` with `mra/Gunpey (Japan).mra`: tested by the repository owner, and it works.
 
 ## Where the core is not MAME
 
@@ -88,8 +90,6 @@ third button. Keyboard: 1 / 2 start, 5 / 6 coin, 9 service, F2 the test switch (
 
 ## Known differences / open points
 
-* Not yet run on a MiSTer: the SDRAM at 85.86 MHz (the Rabbit core's controller and timing, proven at 96 MHz), the fractional PLL, the
-  V30 at 14.3 MHz (the M72 core runs it at 8 MHz), the video and audio output.
 * MAME's own open points stay open: where the board's two frame buffers are in the video RAM, and whether the board shows the game at
   60 or 30 frames a second (the 2018 progress report's question); the core shows what MAME shows. MAME's raster (442 x 264 dots,
   61.32 Hz) is used; the PCB's notes give 60 Hz / 15.79 kHz.

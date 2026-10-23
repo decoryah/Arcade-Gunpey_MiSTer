@@ -17,6 +17,8 @@
         0x500000  0x400000  ymz       gp_rom4
         0x900000  0x200000  oki       gp_rom5's first half (its second half is 0xFF in the dump and never read)
         0xB00000  0x400000  0xFF      the video RAM's first contents, as MAME's
+      The md5 is MiSTer's: of the parts' bytes in the order they are read, before the interleave (the image itself is
+      06094488fbf4eccf49f052f474608857). On a mismatch MiSTer does not load the ROM.
       The DIP switches are MAME 0.289's (gunpey.cpp); the test mode is F2 on a keyboard.
     -->
 
@@ -36,7 +38,7 @@
          button 3 does nothing in the game -->
     <buttons names="Swap,Raise,Start,Coin" default="A,B,Start,Select"/>
 
-    <rom index="0" zip="gunpey.zip" md5="06094488fbf4eccf49f052f474608857" address="0x32000000">
+    <rom index="0" zip="gunpey.zip" md5="b1d3c0e1ed6e23faad514f783729fb79" address="0x32000000">
         <!-- maincpu -->
         <interleave output="16">
             <part name="gp_rom1.021" crc="07a589a7" map="01"/>

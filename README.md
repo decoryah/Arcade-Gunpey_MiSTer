@@ -57,7 +57,9 @@ third button. Keyboard: 1 / 2 start, 5 / 6 coin, 9 service, F2 the test switch (
 * **The sound**, against MAME's `-wavwrite` recording of the same scripted session: the system bench's 48 kHz capture starts where
   MAME's does, at twice MAME's level as designed, and its waveform matches MAME's: the normalised cross-correlation of half-second
   windows is 0.86 to 0.997 (at offsets of 0 and 65 ms: the core's slower V30 moves some sound events by a few frames).
-* **The MRA**: `tools/mra_build.py` assembles exactly the image the benches load.
+* **The MRA**: `tools/mra_build.py` assembles exactly the image the benches load, and checks the MRA's md5 the way MiSTer computes
+  it (over the files as read, before the interleave). MiSTer's own assembly code (`rom_data()` from Main_MiSTer's
+  `mra_loader.cpp`, run on a PC) builds the same image and the same md5.
 * **The MiSTer top level** (`sim/emu/run_emu.sh`: `Gunpey.sv` with the framework's video path, hps_io and the PLL stubbed, the SDRAM
   and DDR3 modelled): the MRA's image loads through the HPS port and through the DDR3 fast load (0.83 s of machine time) into the
   SDRAM byte for byte; the raster is 442 x 264 dots of 12 clocks (61.32 Hz) with 240 rows of 320 dots, scandoubled 480 rows; every

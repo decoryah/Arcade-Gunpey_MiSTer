@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-# Taken unchanged from plasticbugs/analogue-pocket-gaiapolis (tools/mra_build.py, GPL-3.0); here it builds the
-# simulation images from mra/*.mra:  python tools/mra_build.py "mra/Gaiapolis (World ver EAF).mra" gaiapols.zip out.rom
+# Taken from plasticbugs/analogue-pocket-gaiapolis (tools/mra_build.py, GPL-3.0); here it builds the simulation images
+# from mra/*.mra:  python tools/mra_build.py "mra/Gunpey (Japan).mra" gunpey.zip gunpey.rom
+# Changed here: the .mra's md5 is checked as MiSTer computes it (Main_MiSTer support/arcade/mra_loader.cpp, rom_data()
+# hashes each part's bytes as it reads them, before the interleave), not over the finished image; MiSTer does not load a
+# ROM whose md5 does not match.
 """Build the Pocket .rom image for the Gaiapolis core from a MAME romset.
 
 A core is FPGA gateware: it cannot unzip a romset or run a script, so the ROM
 image has to be assembled on a computer. This reads the .mra description and a
 MAME `gaiapols` romset -- either the zip or a directory of loose files -- checks
 every part's CRC32, assembles the image in the order the .mra gives, and
-verifies the finished image against the md5 recorded in the .mra.
+verifies the md5 recorded in the .mra the way MiSTer computes it: over the
+parts' bytes in the order they are read (an interleave's parts one after the
+other, not interleaved).
 
 Supported MRA elements (the standard MiSTer subset):
 
@@ -158,7 +163,7 @@ def do_interleave(parts, node):
             src_index = int(d) - 1     # which of this part's k bytes per word
             out[pos::nbytes] = data[src_index::k]
     labels = ' + '.join(f'{l}(map {m})' for l, _, m in sources)
-    return f'interleave{width}[{labels}]', bytes(out)
+    return f'interleave{width}[{labels}]', bytes(out), b''.join(data for _, data, _ in sources)
 
 
 def build(mra_path, romset_path, verbose=False):
@@ -168,20 +173,23 @@ def build(mra_path, romset_path, verbose=False):
         sys.exit('error: no <rom> element in the .mra')
     parts = load_parts(romset_path)
     image = bytearray()
+    stream = hashlib.md5()      # MiSTer's md5: the parts as read
     for node in rom:
         if node.tag == 'part':
             label, data = get_part(parts, node)
+            read = data
         elif node.tag == 'interleave':
-            label, data = do_interleave(parts, node)
+            label, data, read = do_interleave(parts, node)
         else:
             continue
         if verbose:
             print(f'  {len(image):#08x}  {len(data):7d}  {label}')
         image += data
+        stream.update(read)
     expected = rom.get('md5')
-    actual = hashlib.md5(image).hexdigest()
+    actual = stream.hexdigest()
     if expected and expected.lower() != 'none' and expected.lower() != actual:
-        sys.exit(f'error: built image md5 {actual} does not match the .mra ({expected})')
+        sys.exit(f'error: the parts\' md5 (MiSTer\'s) {actual} does not match the .mra ({expected})')
     return bytes(image), actual
 
 
@@ -195,7 +203,7 @@ def main():
     image, md5 = build(mra_path, romset_path, verbose=True)
     with open(out_path, 'wb') as f:
         f.write(image)
-    print(f'wrote {out_path}: {len(image)} bytes, md5 {md5}')
+    print(f'wrote {out_path}: {len(image)} bytes, md5 {hashlib.md5(image).hexdigest()} (the .mra\'s, MiSTer\'s: {md5})')
 
 
 if __name__ == '__main__':
